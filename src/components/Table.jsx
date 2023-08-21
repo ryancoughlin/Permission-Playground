@@ -133,7 +133,9 @@ const Table = () => {
     }
 
     const renderHeader = () => (
-        <div className="grid grid-cols-6 text-sm font-bold p-2">
+        <div className="grid grid-cols-6 text-sm font-bold p-2 bg-gray-200">
+            {' '}
+            {/* Added background color */}
             <div className="col-span-4 pl-28">Name</div>
             <div className="col-span-1 flex justify-center items-center space-x-4">
                 <div>Allow</div>
@@ -141,9 +143,8 @@ const Table = () => {
             </div>
         </div>
     )
-
     const renderControls = (key) => (
-        <div className="col-span-1 flex justify-center items-center space-x-4">
+        <div className="col-span-2 flex justify-center items-center">
             <label onClick={(e) => e.stopPropagation()}>
                 <input
                     onChange={(e) => handleCheckboxChange(key, 'allow', e)}
@@ -163,29 +164,41 @@ const Table = () => {
         </div>
     )
 
+    const getBackgroundColor = (key) => {
+        // Check if the key itself is selected
+        if (selected[key]) return 'bg-blue-50'
+
+        // Check if any child of the key is selected
+        for (let selectedKey in selected) {
+            if (selectedKey.startsWith(key) && selected[selectedKey]) {
+                return 'bg-blue-50'
+            }
+        }
+
+        return '' // Default: no background color
+    }
+
     const renderSpace = (space, key) => (
-        <div key={key} className="grid grid-cols-6 pl-16">
-            <div className="col-span-4 text-gray-700 text-sm font-bold mb-2">
-                {space}
-            </div>
+        <div key={key} className="grid grid-cols-6 pl-24 p-2">
+            <div className="col-span-2 text-gray-700 text-sm">{space}</div>
             {renderControls(key)}
         </div>
     )
 
     const renderFloor = (floor, spaces, key) => (
-        <div key={key} className="pl-12">
+        <div key={key} className="pl-8">
             <div
                 onClick={(e) => toggleExpand(key, e)}
-                className="grid grid-cols-6 items-center hover:bg-gray-100 cursor-pointer p-2"
+                className={`grid grid-cols-6 items-center ${getBackgroundColor(
+                    key
+                )} cursor-pointer p-2`}
             >
                 {expanded[key] ? (
                     <ChevronDownIcon className="h-4 w-4 mr-2 text-gray-600" />
                 ) : (
                     <ChevronRightIcon className="h-4 w-4 mr-2 text-gray-600" />
                 )}
-                <div className="col-span-4 text-gray-700 text-sm font-bold">
-                    {floor}
-                </div>
+                <div className="col-span-2 text-gray-700 text-sm">{floor}</div>
                 {renderControls(key)}
             </div>
             {expanded[key] &&
@@ -194,17 +207,19 @@ const Table = () => {
     )
 
     const renderBuilding = (building, floors, key) => (
-        <div key={key} className="pl-8">
+        <div key={key}>
             <div
                 onClick={(e) => toggleExpand(key, e)}
-                className="grid grid-cols-6 items-center hover:bg-gray-100 cursor-pointer p-2"
+                className={`pl-8 grid grid-cols-6 items-center ${getBackgroundColor(
+                    key
+                )} cursor-pointer p-2`}
             >
                 {expanded[key] ? (
                     <ChevronDownIcon className="h-4 w-4 mr-2 text-gray-600" />
                 ) : (
                     <ChevronRightIcon className="h-4 w-4 mr-2 text-gray-600" />
                 )}
-                <div className="col-span-4 text-gray-700 text-sm font-bold">
+                <div className="col-span-2 text-gray-700 text-sm">
                     {building}
                 </div>
                 {renderControls(key)}
@@ -220,14 +235,16 @@ const Table = () => {
         <div key={location} className="mb-1">
             <div
                 onClick={(e) => toggleExpand(location, e)}
-                className="grid grid-cols-6 items-center hover:bg-gray-100 cursor-pointer p-2"
+                className={`grid grid-cols-6 items-center ${getBackgroundColor(
+                    location
+                )} cursor-pointer p-2`}
             >
                 {expanded[location] ? (
                     <ChevronDownIcon className="h-4 w-4 mr-2 text-gray-600" />
                 ) : (
                     <ChevronRightIcon className="h-4 w-4 mr-2 text-gray-600" />
                 )}
-                <div className="col-span-4 text-gray-700 text-sm font-bold">
+                <div className="col-span-2 text-gray-700 text-sm font-bold">
                     {location}
                 </div>
                 {renderControls(location)}
@@ -248,16 +265,22 @@ const Table = () => {
 
     return (
         <div className="container mx-auto p-4">
-            <div className="mb-4 flex items-center">
-                <input
-                    type="text"
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline pl-10"
-                    placeholder="Search locations..."
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <MagnifyingGlassIcon className="h-4 w-4 text-gray-600 absolute ml-3 mt-2" />
+            <div className="sticky top-0 z-10 bg-white">
+                {' '}
+                {/* Sticky container */}
+                <div className="mb-4 flex items-center relative">
+                    {' '}
+                    {/* Added 'relative' class */}
+                    <input
+                        type="text"
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline pl-10"
+                        placeholder="Search locations..."
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <MagnifyingGlassIcon className="h-4 w-4 text-gray-600 absolute ml-3 mt-2" />
+                </div>
+                {renderHeader()}
             </div>
-            {renderHeader()}
             {Object.entries(filteredLocations).map(([location, buildings]) =>
                 renderLocation(location, buildings)
             )}
