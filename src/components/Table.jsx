@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react'
-
+import React, { useState, useEffect, useRef } from 'react'
 import { locations } from '../locations'
 import {
     MagnifyingGlassIcon,
@@ -64,6 +63,22 @@ const filterAndExpand = (locations, searchTerm) => {
 
 const Table = () => {
     const [searchTerm, setSearchTerm] = useState('')
+    const indeterminateRef = useRef({}) // Added reference to manage indeterminate state
+
+    // Identify the key for the Sydney building
+    let initialSelected = {}
+    Object.entries(locations).forEach(([campus, buildings], i) => {
+        Object.entries(buildings).forEach(([building], j) => {
+            if (building === 'Sydney Building') {
+                const key = `${campus}-${j}`
+                initialSelected[key] = 'allow'
+            }
+        })
+    })
+
+    // Set the initial state
+    const [selected, setSelected] = useState(initialSelected)
+
     const [expanded, setExpanded] = useState(() => {
         const initialExpanded = {}
         Object.keys(locations).forEach((campus) => {
@@ -71,8 +86,6 @@ const Table = () => {
         })
         return initialExpanded
     })
-
-    const [selected, setSelected] = useState({})
 
     const { filteredLocations, shouldExpand } = filterAndExpand(
         locations,
@@ -97,6 +110,12 @@ const Table = () => {
 
     const getTotalSelected = () => {
         return Object.values(selected).filter((value) => value != null).length
+    }
+
+    const setIndeterminateState = (key, value) => {
+        if (indeterminateRef.current[key]) {
+            indeterminateRef.current[key].indeterminate = value
+        }
     }
 
     const handleCheckboxChange = (key, value, e) => {
@@ -146,6 +165,22 @@ const Table = () => {
             }
         )
 
+        // Determine indeterminate state for parents
+        Object.keys(filteredLocations).forEach((locationKey) => {
+            const parentKeys = key.split('-').slice(0, -1)
+            let parentKey = parentKeys.join('-')
+            const isChecked = e.target.checked
+            if (key.startsWith(locationKey) && parentKey !== '') {
+                let childValues = Object.values(selected).filter((v, i) =>
+                    parentKeys.every((p, j) => p == parentKey.split('-')[j])
+                )
+                const allSame = childValues.every(
+                    (val) => val === childValues[0]
+                )
+                setIndeterminateState(parentKey, !isChecked || !allSame)
+            }
+        })
+
         setSelected(updatedSelection)
     }
 
@@ -167,6 +202,9 @@ const Table = () => {
             <div className="col-span-1 flex justify-center items-center">
                 <label onClick={(e) => e.stopPropagation()}>
                     <input
+                        ref={(el) => {
+                            indeterminateRef.current[key] = el // Storing the checkbox reference
+                        }}
                         onChange={(e) => handleCheckboxChange(key, 'allow', e)}
                         type="checkbox"
                         className="mr-2 leading-tight"
@@ -286,6 +324,15 @@ const Table = () => {
             ...prev,
             ...shouldExpand,
         }))
+
+        // Set initial indeterminate state based on child selections
+        Object.keys(selected).forEach((key) => {
+            const childValues = Object.values(selected).filter((v, i) =>
+                key.split('-').every((k, j) => k == key.split('-')[j])
+            )
+            const allSame = childValues.every((val) => val === childValues[0])
+            setIndeterminateState(key, !allSame)
+        })
     }, [searchTerm])
 
     return (
