@@ -95,6 +95,10 @@ const Table = () => {
         })
     }
 
+    const getTotalSelected = () => {
+        return Object.values(selected).filter((value) => value != null).length
+    }
+
     const handleCheckboxChange = (key, value, e) => {
         const isChecked = e.target.checked
         const updatedSelection = { ...selected }
@@ -124,6 +128,19 @@ const Table = () => {
                         buildings,
                         key,
                         isChecked ? value : null
+                    )
+                } else {
+                    Object.entries(buildings).forEach(
+                        ([buildingKey, floors], j) => {
+                            const fullBuildingKey = `${locationKey}-${j}`
+                            if (key === fullBuildingKey) {
+                                applySelectionToChildren(
+                                    floors,
+                                    fullBuildingKey,
+                                    isChecked ? value : null
+                                )
+                            }
+                        }
                     )
                 }
             }
