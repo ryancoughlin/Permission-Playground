@@ -21,10 +21,34 @@ const App = () => {
     }
 
     const permissions = [
-        'Booking',
-        'Bypass space booking policies',
-        'Skip check-in',
+        {
+            title: 'Booking',
+            description: 'Reserve spaces and resources.',
+        },
+        {
+            title: 'Bypass space booking policies',
+            description: 'Override standard booking policies.',
+        },
+        {
+            title: 'Skip check-in',
+            description: 'Fast-track entry without regular procedures.',
+        },
+        {
+            title: 'View event details',
+            description:
+                'Access details like attendees, times, locations, agendas.',
+        },
+        {
+            title: 'Manage events',
+            description: 'Create, edit, or delete events in scheduling system.',
+        },
+        {
+            title: 'Manage meeting services',
+            description:
+                'Control meeting tools, video setups, catering, equipment.',
+        },
     ]
+
     return (
         <div className="App relative">
             <div className="bg-gray-100 min-h-screen">
@@ -55,7 +79,7 @@ const App = () => {
                                 {permissions.map((permission) => (
                                     <BookingPermissionRow
                                         key={permission}
-                                        title={permission}
+                                        permission={permission}
                                         onClick={handleRowClick}
                                         isDrawerOpen={isDrawerOpen}
                                         handleDrawerClose={handleDrawerClose}

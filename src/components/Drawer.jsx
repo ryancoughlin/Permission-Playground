@@ -6,9 +6,9 @@ const Drawer = ({ isOpen, onClose, title, children }) => {
         >
             <div
                 className="absolute right-0 h-full bg-white p-4 overflow-y-auto border-l shadow-xl"
-                style={{ width: '660px' }}
+                style={{ width: '660px', paddingBottom: '60px' }} // Increased padding to make room for the footer
             >
-                <h2 className="text-2xl font-bold">{title}</h2>{' '}
+                <h2 className="text-2xl font-bold">{title}</h2>
                 <p className="text-gray-600 mb-6">
                     Manage the permission settings for locations to control user
                     accessibility.
@@ -33,6 +33,18 @@ const Drawer = ({ isOpen, onClose, title, children }) => {
                     </svg>
                 </button>
                 {children}
+            </div>
+            <div
+                className="absolute bottom-0 right-0 bg-white p-4 border-t shadow"
+                style={{ width: '660px' }}
+            >
+                {' '}
+                <button
+                    onClick={onClose}
+                    className="float-right bg-blue-500 text-white p-2 rounded"
+                >
+                    Save
+                </button>
             </div>
         </div>
     )

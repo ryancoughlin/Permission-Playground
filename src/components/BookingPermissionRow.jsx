@@ -1,41 +1,48 @@
-import React, { useState } from 'react'
-import Table from './Table'
+import React from 'react'
 import Drawer from './Drawer'
+import Table from './Table'
 import { locations } from '../locations'
 
-const PermissionRow = ({ title, onClick, isDrawerOpen, handleDrawerClose }) => {
+const PermissionRow = ({
+    permission,
+    onClick,
+    isDrawerOpen,
+    handleDrawerClose,
+    allowedCount,
+    disallowedCount,
+}) => {
     return (
         <>
-            <tr
-                onClick={() => onClick(title)}
-                className="cursor-pointer hover:bg-gray-100"
+            <div
+                onClick={() => onClick(permission.title)}
+                className="flex p-2 cursor-pointer hover:bg-gray-100"
             >
-                <td className="col-span-1">
-                    <p className="font-semibold">{title}</p>
-                </td>
-                <td className="col-span-2">
-                    <div className="mb-2">
-                        <span className="text-green-500">Can in:</span>
-                        <span>
-                            {/* Locations that can perform the action */}
-                        </span>
-                    </div>
-                    <div>
-                        <span className="text-red-500">Can't in:</span>
-                        <span>
-                            {/* Locations that can't perform the action */}
-                        </span>
-                    </div>
-                </td>
-            </tr>
+                <div className="flex-1">
+                    <p className="font-semibold">{permission.title}</p>
+                    <p className="text-sm text-gray-500">
+                        {permission.description}
+                    </p>
+                </div>
+
+                <div className="flex-2">
+                    <span className="text-green-500">
+                        {allowedCount} Allowed
+                    </span>{' '}
+                    /{' '}
+                    <span className="text-red-500">
+                        {disallowedCount} Disallowed
+                    </span>
+                </div>
+            </div>
             <Drawer
                 isOpen={isDrawerOpen}
                 onClose={handleDrawerClose}
-                title={title}
+                title={permission.title}
             >
                 <Table data={locations} />
             </Drawer>
         </>
     )
 }
+
 export default PermissionRow

@@ -187,7 +187,7 @@ const Table = () => {
     }
 
     const renderSpace = (space, key) => (
-        <div key={key} className="grid grid-cols-6 pl-24 p-2">
+        <div key={key} className="hover:bg-gray-100 grid grid-cols-6 pl-24 p-2">
             <div className="col-span-3 text-gray-700 text-sm">{space}</div>
             {renderControls(key)}
         </div>
@@ -197,7 +197,7 @@ const Table = () => {
         <div key={key} className="pl-8">
             <div
                 onClick={(e) => toggleExpand(key, e)}
-                className={`grid grid-cols-6 items-center ${getBackgroundColor(
+                className={`hover:bg-gray-100 grid grid-cols-6 items-center ${getBackgroundColor(
                     key
                 )} cursor-pointer p-2`}
             >
@@ -218,7 +218,7 @@ const Table = () => {
         <div key={key}>
             <div
                 onClick={(e) => toggleExpand(key, e)}
-                className={`pl-8 grid grid-cols-6 items-center ${getBackgroundColor(
+                className={`hover:bg-gray-100 pl-8 grid grid-cols-6 items-center ${getBackgroundColor(
                     key
                 )} cursor-pointer p-2`}
             >
@@ -243,7 +243,7 @@ const Table = () => {
         <div key={location} className="mb-1">
             <div
                 onClick={(e) => toggleExpand(location, e)}
-                className={`grid grid-cols-6 items-center ${getBackgroundColor(
+                className={`hover:bg-gray-100 grid grid-cols-6 items-center ${getBackgroundColor(
                     location
                 )} cursor-pointer p-2`}
             >
