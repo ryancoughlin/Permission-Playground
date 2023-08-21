@@ -137,31 +137,39 @@ const Table = () => {
             {' '}
             {/* Added background color */}
             <div className="col-span-4 pl-28">Name</div>
-            <div className="col-span-1 flex justify-center items-center space-x-4">
+            <div className="col-span-1 flex justify-center items-center">
                 <div>Allow</div>
+            </div>
+            <div className="col-span-1 flex justify-center items-center">
                 <div>Disallow</div>
             </div>
         </div>
     )
     const renderControls = (key) => (
-        <div className="col-span-2 flex justify-center items-center">
-            <label onClick={(e) => e.stopPropagation()}>
-                <input
-                    onChange={(e) => handleCheckboxChange(key, 'allow', e)}
-                    type="checkbox"
-                    className="mr-2 leading-tight"
-                    checked={selected[key] === 'allow'}
-                />
-            </label>
-            <label onClick={(e) => e.stopPropagation()}>
-                <input
-                    onChange={(e) => handleCheckboxChange(key, 'disallow', e)}
-                    type="checkbox"
-                    className="mr-2 leading-tight"
-                    checked={selected[key] === 'disallow'}
-                />
-            </label>
-        </div>
+        <>
+            <div className="col-span-1 flex justify-center items-center">
+                <label onClick={(e) => e.stopPropagation()}>
+                    <input
+                        onChange={(e) => handleCheckboxChange(key, 'allow', e)}
+                        type="checkbox"
+                        className="mr-2 leading-tight"
+                        checked={selected[key] === 'allow'}
+                    />
+                </label>
+            </div>
+            <div className="col-span-1 flex justify-center items-center">
+                <label onClick={(e) => e.stopPropagation()}>
+                    <input
+                        onChange={(e) =>
+                            handleCheckboxChange(key, 'disallow', e)
+                        }
+                        type="checkbox"
+                        className="mr-2 leading-tight"
+                        checked={selected[key] === 'disallow'}
+                    />
+                </label>
+            </div>
+        </>
     )
 
     const getBackgroundColor = (key) => {
@@ -180,7 +188,7 @@ const Table = () => {
 
     const renderSpace = (space, key) => (
         <div key={key} className="grid grid-cols-6 pl-24 p-2">
-            <div className="col-span-2 text-gray-700 text-sm">{space}</div>
+            <div className="col-span-3 text-gray-700 text-sm">{space}</div>
             {renderControls(key)}
         </div>
     )
@@ -198,7 +206,7 @@ const Table = () => {
                 ) : (
                     <ChevronRightIcon className="h-4 w-4 mr-2 text-gray-600" />
                 )}
-                <div className="col-span-2 text-gray-700 text-sm">{floor}</div>
+                <div className="col-span-3 text-gray-700 text-sm">{floor}</div>
                 {renderControls(key)}
             </div>
             {expanded[key] &&
@@ -219,7 +227,7 @@ const Table = () => {
                 ) : (
                     <ChevronRightIcon className="h-4 w-4 mr-2 text-gray-600" />
                 )}
-                <div className="col-span-2 text-gray-700 text-sm">
+                <div className="col-span-3 text-gray-700 text-sm">
                     {building}
                 </div>
                 {renderControls(key)}
@@ -244,7 +252,7 @@ const Table = () => {
                 ) : (
                     <ChevronRightIcon className="h-4 w-4 mr-2 text-gray-600" />
                 )}
-                <div className="col-span-2 text-gray-700 text-sm font-bold">
+                <div className="col-span-3 text-gray-700 text-sm font-bold">
                     {location}
                 </div>
                 {renderControls(location)}
