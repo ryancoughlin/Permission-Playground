@@ -211,10 +211,10 @@ const Table = () => {
     )
 
     const renderFloor = (floor, spaces, key) => (
-        <div key={key} className="pl-8">
+        <div key={key}>
             <div
                 onClick={(e) => toggleExpand(key, e)}
-                className={`hover:bg-gray-100 grid grid-cols-6 items-center ${getBackgroundColor(
+                className={`pl-8 hover:bg-gray-100 grid grid-cols-6 items-center ${getBackgroundColor(
                     key
                 )} cursor-pointer p-2`}
             >
