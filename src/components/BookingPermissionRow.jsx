@@ -25,12 +25,8 @@ const PermissionRow = ({
                 </div>
 
                 <div className="flex-2">
-                    <span className="text-green-500">
-                        {allowedCount} Allowed
-                    </span>{' '}
-                    /{' '}
-                    <span className="text-red-500">
-                        {disallowedCount} Disallowed
+                    <span class="inline-flex items-center rounded-md bg-pink-50 px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700/10">
+                        10 locations
                     </span>
                 </div>
             </div>
