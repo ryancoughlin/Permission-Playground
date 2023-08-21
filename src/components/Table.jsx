@@ -1,169 +1,267 @@
 import React, { useState, useEffect } from 'react'
+
 import { locations } from '../locations'
+import {
+    MagnifyingGlassIcon,
+    ChevronDownIcon,
+    ChevronRightIcon,
+} from '@heroicons/react/24/solid'
 
-const TableRow = ({
-    label,
-    level,
-    children,
-    selectedValue,
-    onSelectionChange,
-    parentValue,
-}) => {
-    const [isExpanded, setIsExpanded] = useState(false)
-    const [allow, setAllow] = useState(
-        selectedValue === 'allow' || parentValue === 'allow'
-    )
-    const [disallow, setDisallow] = useState(
-        selectedValue === 'disallow' || parentValue === 'disallow'
-    )
+const filterAndExpand = (locations, searchTerm) => {
+    const filteredLocations = {}
+    let shouldExpand = {}
 
-    const handleCheckboxClick = (e) => {
-        e.stopPropagation() // Stop the event from bubbling up to the parent elements
-    }
+    Object.entries(locations).forEach(([campus, buildings]) => {
+        let isCampusMatched = campus
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
 
-    useEffect(() => {
-        if (parentValue === 'allow') {
-            setAllow(true)
-            setDisallow(false)
-        } else if (parentValue === 'disallow') {
-            setAllow(false)
-            setDisallow(true)
+        if (isCampusMatched) {
+            // If the campus matches the search term, include all its children in the result
+            filteredLocations[campus] = buildings
+            shouldExpand[campus] = true
         } else {
-            setAllow(false)
-            setDisallow(false)
-        }
-    }, [parentValue])
+            // Otherwise, filter the children based on the search term as before
+            let filteredBuildings = {}
+            Object.entries(buildings).forEach(([building, floors]) => {
+                let isBuildingMatched = building
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase())
 
-    const handleCheckboxChange = (value) => (e) => {
-        const checked = e.target.checked
-        if (value === 'allow') {
-            setAllow(checked)
-            setDisallow(false)
-            onSelectionChange(label, checked ? 'allow' : null)
-        } else {
-            setDisallow(checked)
-            setAllow(false)
-            onSelectionChange(label, checked ? 'disallow' : null)
-        }
-    }
+                let filteredFloors = {}
+                Object.entries(floors).forEach(([floor, spaces]) => {
+                    let isFloorMatched = floor
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase())
+                    let filteredSpaces = spaces.filter((space) =>
+                        space.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
 
-    return (
-        <React.Fragment>
-            <tr
-                className={`cursor-pointer hover:bg-gray-100 ${
-                    allow || disallow ? 'bg-blue-100' : ''
-                }`}
-                onClick={() => setIsExpanded(!isExpanded)}
-            >
-                <td className={`pl-${level * 4} text-left py-2`}>{label}</td>
-                <td className="text-center py-2" onClick={handleCheckboxClick}>
-                    <input
-                        type="checkbox"
-                        checked={allow}
-                        onChange={handleCheckboxChange('allow')}
-                    />
-                </td>
-                <td className="text-center py-2" onClick={handleCheckboxClick}>
-                    <input
-                        type="checkbox"
-                        checked={disallow}
-                        onChange={handleCheckboxChange('disallow')}
-                    />
-                </td>
-            </tr>
-            {isExpanded &&
-                children?.map((child) =>
-                    React.cloneElement(child, {
-                        parentValue: allow
-                            ? 'allow'
-                            : disallow
-                            ? 'disallow'
-                            : null,
-                        onSelectionChange,
-                    })
-                )}
-        </React.Fragment>
-    )
+                    if (isFloorMatched || filteredSpaces.length > 0) {
+                        filteredFloors[floor] = filteredSpaces
+                        shouldExpand[`${campus}-${building}`] = true
+                        shouldExpand[`${campus}-${building}-${floor}`] = true
+                    }
+                })
+
+                if (
+                    isBuildingMatched ||
+                    Object.keys(filteredFloors).length > 0
+                ) {
+                    filteredBuildings[building] = filteredFloors
+                    shouldExpand[`${campus}-${building}`] = true
+                }
+            })
+
+            if (Object.keys(filteredBuildings).length > 0) {
+                filteredLocations[campus] = filteredBuildings
+            }
+        }
+    })
+
+    return { filteredLocations, shouldExpand }
 }
 
-const renderSpaces = (spaces, level, onSelectionChange, parentValue) =>
-    spaces.map((space, index) => (
-        <TableRow
-            key={index}
-            label={space}
-            level={level}
-            onSelectionChange={onSelectionChange}
-            parentValue={parentValue}
-        />
-    ))
-
-const renderFloors = (floors, level, onSelectionChange, parentValue) =>
-    Object.entries(floors).map(([floor, spaces]) => (
-        <TableRow
-            key={floor}
-            label={floor}
-            level={level}
-            onSelectionChange={onSelectionChange}
-            parentValue={parentValue}
-        >
-            {renderSpaces(spaces, level + 1, onSelectionChange, parentValue)}
-        </TableRow>
-    ))
-
-const renderBuildings = (buildings, level, onSelectionChange, parentValue) =>
-    Object.entries(buildings).map(([building, floors]) => (
-        <TableRow
-            key={building}
-            label={building}
-            level={level}
-            onSelectionChange={onSelectionChange}
-            parentValue={parentValue}
-        >
-            {renderFloors(floors, level + 1, onSelectionChange, parentValue)}
-        </TableRow>
-    ))
-
-// Table component
 const Table = () => {
-    const [selection, setSelection] = useState({})
+    const [searchTerm, setSearchTerm] = useState('')
+    const [expanded, setExpanded] = useState(() => {
+        const initialExpanded = {}
+        Object.keys(locations).forEach((campus) => {
+            initialExpanded[campus] = true
+        })
+        return initialExpanded
+    })
 
-    const onSelectionChange = (label, value) => {
-        setSelection((prev) => ({ ...prev, [label]: value }))
+    const [selected, setSelected] = useState({})
+
+    const { filteredLocations, shouldExpand } = filterAndExpand(
+        locations,
+        searchTerm
+    )
+
+    const toggleExpand = (key, e) => {
+        e.stopPropagation()
+        setExpanded((prev) => ({
+            ...prev,
+            [key]: !prev[key],
+        }))
     }
 
-    return (
-        <>
-            <div className="px-4 py-6">
-                <table className="w-full border-collapse border border-gray-300 rounded-lg shadow-md">
-                    <thead className="bg-gray-200">
-                        <tr>
-                            <th className="text-left pl-4 py-2">Location</th>
-                            <th className="text-center py-2">Allow</th>
-                            <th className="text-center py-2">Disallow</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {Object.entries(locations).map(
-                            ([campus, buildings]) => (
-                                <TableRow
-                                    key={campus}
-                                    label={campus}
-                                    level={0}
-                                    onSelectionChange={onSelectionChange}
-                                >
-                                    {renderBuildings(
-                                        buildings,
-                                        1,
-                                        onSelectionChange,
-                                        null
-                                    )}
-                                </TableRow>
-                            )
-                        )}
-                    </tbody>
-                </table>
+    const updateChildren = (parentKey, value) => {
+        Object.keys(selected).forEach((key) => {
+            if (key.startsWith(parentKey)) {
+                updatedSelection[key] = value
+            }
+        })
+    }
+
+    const handleCheckboxChange = (key, value, e) => {
+        const isChecked = e.target.checked
+        const updatedSelection = { ...selected }
+
+        const applySelectionToChildren = (
+            currentLocation,
+            parentKey,
+            value
+        ) => {
+            Object.entries(currentLocation).forEach(
+                ([childKey, childValue], i) => {
+                    const fullKey = `${parentKey}-${i}`
+                    updatedSelection[fullKey] = value
+                    if (typeof childValue === 'object') {
+                        applySelectionToChildren(childValue, fullKey, value)
+                    }
+                }
+            )
+        }
+
+        updatedSelection[key] = isChecked ? value : null
+
+        Object.entries(filteredLocations).forEach(
+            ([locationKey, buildings], i) => {
+                if (key === locationKey) {
+                    applySelectionToChildren(
+                        buildings,
+                        key,
+                        isChecked ? value : null
+                    )
+                }
+            }
+        )
+
+        setSelected(updatedSelection)
+    }
+
+    const renderHeader = () => (
+        <div className="grid grid-cols-6 text-sm font-bold p-2">
+            <div className="col-span-4 pl-28">Name</div>
+            <div className="col-span-1 flex justify-center items-center space-x-4">
+                <div>Allow</div>
+                <div>Disallow</div>
             </div>
-        </>
+        </div>
+    )
+
+    const renderControls = (key) => (
+        <div className="col-span-1 flex justify-center items-center space-x-4">
+            <label onClick={(e) => e.stopPropagation()}>
+                <input
+                    onChange={(e) => handleCheckboxChange(key, 'allow', e)}
+                    type="checkbox"
+                    className="mr-2 leading-tight"
+                    checked={selected[key] === 'allow'}
+                />
+            </label>
+            <label onClick={(e) => e.stopPropagation()}>
+                <input
+                    onChange={(e) => handleCheckboxChange(key, 'disallow', e)}
+                    type="checkbox"
+                    className="mr-2 leading-tight"
+                    checked={selected[key] === 'disallow'}
+                />
+            </label>
+        </div>
+    )
+
+    const renderSpace = (space, key) => (
+        <div key={key} className="grid grid-cols-6 pl-16">
+            <div className="col-span-4 text-gray-700 text-sm font-bold mb-2">
+                {space}
+            </div>
+            {renderControls(key)}
+        </div>
+    )
+
+    const renderFloor = (floor, spaces, key) => (
+        <div key={key} className="pl-12">
+            <div
+                onClick={(e) => toggleExpand(key, e)}
+                className="grid grid-cols-6 items-center hover:bg-gray-100 cursor-pointer p-2"
+            >
+                {expanded[key] ? (
+                    <ChevronDownIcon className="h-4 w-4 mr-2 text-gray-600" />
+                ) : (
+                    <ChevronRightIcon className="h-4 w-4 mr-2 text-gray-600" />
+                )}
+                <div className="col-span-4 text-gray-700 text-sm font-bold">
+                    {floor}
+                </div>
+                {renderControls(key)}
+            </div>
+            {expanded[key] &&
+                spaces.map((space, i) => renderSpace(space, `${key}-${i}`))}
+        </div>
+    )
+
+    const renderBuilding = (building, floors, key) => (
+        <div key={key} className="pl-8">
+            <div
+                onClick={(e) => toggleExpand(key, e)}
+                className="grid grid-cols-6 items-center hover:bg-gray-100 cursor-pointer p-2"
+            >
+                {expanded[key] ? (
+                    <ChevronDownIcon className="h-4 w-4 mr-2 text-gray-600" />
+                ) : (
+                    <ChevronRightIcon className="h-4 w-4 mr-2 text-gray-600" />
+                )}
+                <div className="col-span-4 text-gray-700 text-sm font-bold">
+                    {building}
+                </div>
+                {renderControls(key)}
+            </div>
+            {expanded[key] &&
+                Object.entries(floors).map(([floor, spaces], i) =>
+                    renderFloor(floor, spaces, `${key}-${i}`)
+                )}
+        </div>
+    )
+
+    const renderLocation = (location, buildings) => (
+        <div key={location} className="mb-1">
+            <div
+                onClick={(e) => toggleExpand(location, e)}
+                className="grid grid-cols-6 items-center hover:bg-gray-100 cursor-pointer p-2"
+            >
+                {expanded[location] ? (
+                    <ChevronDownIcon className="h-4 w-4 mr-2 text-gray-600" />
+                ) : (
+                    <ChevronRightIcon className="h-4 w-4 mr-2 text-gray-600" />
+                )}
+                <div className="col-span-4 text-gray-700 text-sm font-bold">
+                    {location}
+                </div>
+                {renderControls(location)}
+            </div>
+            {expanded[location] &&
+                Object.entries(buildings).map(([building, floors], i) =>
+                    renderBuilding(building, floors, `${location}-${i}`)
+                )}
+        </div>
+    )
+
+    useEffect(() => {
+        setExpanded((prev) => ({
+            ...prev,
+            ...shouldExpand,
+        }))
+    }, [searchTerm])
+
+    return (
+        <div className="container mx-auto p-4">
+            <div className="mb-4 flex items-center">
+                <input
+                    type="text"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline pl-10"
+                    placeholder="Search locations..."
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <MagnifyingGlassIcon className="h-4 w-4 text-gray-600 absolute ml-3 mt-2" />
+            </div>
+            {renderHeader()}
+            {Object.entries(filteredLocations).map(([location, buildings]) =>
+                renderLocation(location, buildings)
+            )}
+        </div>
     )
 }
 
