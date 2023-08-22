@@ -4,6 +4,7 @@ import {
     MagnifyingGlassIcon,
     ChevronDownIcon,
     ChevronRightIcon,
+    LockClosedIcon,
 } from '@heroicons/react/24/solid'
 
 const filterAndExpand = (locations, searchTerm) => {
@@ -64,12 +65,17 @@ const filterAndExpand = (locations, searchTerm) => {
 const Table = () => {
     const [searchTerm, setSearchTerm] = useState('')
     const indeterminateRef = useRef({}) // Added reference to manage indeterminate state
+    const isDisabledBuilding = (building) => building === 'Newcastle Building'
 
     // Identify the key for the Sydney building
     let initialSelected = {}
     Object.entries(locations).forEach(([campus, buildings], i) => {
         Object.entries(buildings).forEach(([building], j) => {
             if (building === 'Sydney Building') {
+                const key = `${campus}-${j}`
+                initialSelected[key] = 'allow'
+            }
+            if (building === 'Newcastle Building') {
                 const key = `${campus}-${j}`
                 initialSelected[key] = 'allow'
             }
@@ -197,18 +203,19 @@ const Table = () => {
             </div>
         </div>
     )
-    const renderControls = (key) => (
+    const renderControls = (key, building) => (
         <>
             <div className="col-span-1 flex justify-center items-center">
                 <label onClick={(e) => e.stopPropagation()}>
                     <input
                         ref={(el) => {
-                            indeterminateRef.current[key] = el // Storing the checkbox reference
+                            indeterminateRef.current[key] = el
                         }}
                         onChange={(e) => handleCheckboxChange(key, 'allow', e)}
                         type="checkbox"
                         className="mr-2 leading-tight"
                         checked={selected[key] === 'allow'}
+                        disabled={isDisabledBuilding(building)}
                     />
                 </label>
             </div>
@@ -221,6 +228,7 @@ const Table = () => {
                         type="checkbox"
                         className="mr-2 leading-tight"
                         checked={selected[key] === 'disallow'}
+                        disabled={isDisabledBuilding(building)}
                     />
                 </label>
             </div>
@@ -248,13 +256,15 @@ const Table = () => {
         </div>
     )
 
-    const renderFloor = (floor, spaces, key) => (
+    const renderFloor = (floor, spaces, key, building) => (
         <div key={key}>
             <div
                 onClick={(e) => toggleExpand(key, e)}
                 className={`pl-8 hover:bg-gray-100 grid grid-cols-6 items-center ${getBackgroundColor(
                     key
-                )} cursor-pointer p-2`}
+                )} cursor-pointer p-2 ${
+                    building === 'Newcastle Building' ? 'disabled-building' : ''
+                }`}
             >
                 {expanded[key] ? (
                     <ChevronDownIcon className="h-4 w-4 mr-2 text-gray-600" />
@@ -275,7 +285,9 @@ const Table = () => {
                 onClick={(e) => toggleExpand(key, e)}
                 className={`hover:bg-gray-100 pl-8 grid grid-cols-6 items-center ${getBackgroundColor(
                     key
-                )} cursor-pointer p-2`}
+                )} cursor-pointer p-2 ${
+                    isDisabledBuilding(building) ? 'disabled-building' : ''
+                }`}
             >
                 {expanded[key] ? (
                     <ChevronDownIcon className="h-4 w-4 mr-2 text-gray-600" />
@@ -284,12 +296,27 @@ const Table = () => {
                 )}
                 <div className="col-span-3 text-gray-700 text-sm">
                     {building}
+                    {isDisabledBuilding(building) && (
+                        <>
+                            <div className="text-xs flex items-center">
+                                <LockClosedIcon className="h-4 w-4 mr-1" />
+                                Location is bookable by userRole. Make changes
+                                to booking permission to hide location.
+                            </div>
+                            <a
+                                href="your-link-to-change"
+                                className="text-xs text-blue-500"
+                            >
+                                Change permission
+                            </a>
+                        </>
+                    )}
                 </div>
-                {renderControls(key)}
+                {renderControls(key, building)}
             </div>
             {expanded[key] &&
                 Object.entries(floors).map(([floor, spaces], i) =>
-                    renderFloor(floor, spaces, `${key}-${i}`)
+                    renderFloor(floor, spaces, `${key}-${i}`, building)
                 )}
         </div>
     )
